@@ -20,8 +20,10 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => this.width * this.height;
 }
 
 
@@ -35,8 +37,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,9 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const values = Object.values(JSON.parse(json));
+  return new proto.constructor(...values);
 }
 
 
@@ -109,34 +112,127 @@ function fromJSON(/* proto, json */) {
  *
  *  For more examples see unit tests.
  */
+class MySuperBaseElementSelector {
+  constructor() {
+    this.selectors = [];
+    this.order = [];
+    this.uniqueSelectors = {
+      element: false,
+      id: false,
+      pseudoElement: false,
+    };
+  }
+
+  checkDuplicate(selector) {
+    if (this.uniqueSelectors[selector]) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector',
+      );
+    }
+  }
+
+  checkOrder(order) {
+    if (this.order[this.order.length - 1] > order) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+  }
+
+  element(name) {
+    this.checkDuplicate('element');
+    this.checkOrder(1);
+    this.selectors.push(name);
+    this.uniqueSelectors.element = true;
+    this.order.push(1);
+    return this;
+  }
+
+  id(name) {
+    this.checkDuplicate('id');
+    this.checkOrder(2);
+    this.selectors.push(`#${name}`);
+    this.uniqueSelectors.id = true;
+    this.order.push(2);
+    return this;
+  }
+
+  pseudoElement(name) {
+    this.checkDuplicate('pseudoElement');
+    this.checkOrder(6);
+    this.selectors.push(`::${name}`);
+    this.uniqueSelectors.pseudoElement = true;
+    this.order.push(6);
+    return this;
+  }
+
+  class(name) {
+    this.checkOrder(3);
+    this.selectors.push(`.${name}`);
+    this.order.push(3);
+    return this;
+  }
+
+  attr(name) {
+    this.checkOrder(4);
+    this.selectors.push(`[${name}]`);
+    this.order.push(4);
+    return this;
+  }
+
+  pseudoClass(name) {
+    this.checkOrder(5);
+    this.selectors.push(`:${name}`);
+    this.order.push(5);
+    return this;
+  }
+
+  stringify() {
+    return this.selectors.join('');
+  }
+
+  combine(selector1, combinator, selector2) {
+    this.selectors.push(selector1.stringify());
+    this.selectors.push(` ${combinator} `);
+    this.selectors.push(selector2.stringify());
+    return this;
+  }
+}
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    const selector = new MySuperBaseElementSelector(value).element(value);
+    return selector;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const selector = new MySuperBaseElementSelector(value).id(value);
+    return selector;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const selector = new MySuperBaseElementSelector(value).class(value);
+    return selector;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const selector = new MySuperBaseElementSelector(value).attr(value);
+    return selector;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const selector = new MySuperBaseElementSelector(value).pseudoClass(value);
+    return selector;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const selector = new MySuperBaseElementSelector(value).pseudoElement(value);
+    return selector;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const combined = new MySuperBaseElementSelector().combine(selector1, combinator, selector2);
+    return combined;
   },
 };
 
